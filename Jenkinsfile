@@ -33,12 +33,6 @@ pipeline {
                 bat "%VENV%\\Scripts\\python manage.py test myapp.tests.test_views"
             }
         }
-
-        stage('Run Container') {
-            steps {
-                bat 'docker-compose -f docker-compose.yml up -d --force-recreate'
-            }
-        }
     }
 
 
