@@ -5,7 +5,7 @@ services:
     container_name: jenkins_django
     command: >
       sh -c "python manage.py migrate --noinput &&
-             python manage.py runserver 0.0.0.0:8007"
+             python manage.py runserver 0.0.0.0:8009"
     ports:
       - "8009:8009"
     environment:
