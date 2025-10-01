@@ -33,6 +33,12 @@ pipeline {
                 bat "%VENV%\\Scripts\\python manage.py test myapp.tests.test_views"
             }
         }
+        // optional 
+        post {
+            always {
+                junit '**/tests/results/*.xml'
+            }
+        }
     }
 
 
