@@ -2,52 +2,44 @@ pipeline {
     agent any
 
     environment {
-        VENV = "venv"
+        VENV = "myenv"
+        PYTHON = "C:\\Users\\imran\\AppData\\Local\\Programs\\Python\\Python38\\python.exe"   // <-- adjust if Python path is different
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/imranworkspace/DjRedCleDockerJenkins.git'
+                git branch: 'main', url: 'https://github.com/imranworkspace/JenkinsDjango'
             }
         }
 
-        stage('Setup Python') {
+        stage('Setup Virtualenv') {
             steps {
-                bat """
-                python -m venv %VENV%
-                call %VENV%\\Scripts\\activate
-                pip install --upgrade pip
-                pip install -r requirements.txt
-                """
+                bat "%PYTHON% -m venv %VENV%"
+                bat "%VENV%\\Scripts\\python -m pip install --upgrade pip"
+                bat "%VENV%\\Scripts\\pip install -r requirements.txt"
             }
         }
 
-        stage('Migrate DB') {
+        stage('Run Migrations') {
             steps {
-                bat """
-                call %VENV%\\Scripts\\activate
-                python manage.py migrate
-                """
+                bat "%VENV%\\Scripts\\python manage.py makemigrations"
+                bat "%VENV%\\Scripts\\python manage.py migrate"
             }
         }
 
         stage('Run Tests') {
             steps {
-                bat """
-                call %VENV%\\Scripts\\activate
-                python manage.py test
-                """
+                bat "%VENV%\\Scripts\\python manage.py test myapp.tests.test_views"
             }
         }
 
-        stage('Run Server') {
+        stage('Run Container') {
             steps {
-                bat """
-                call %VENV%\\Scripts\\activate
-                start /B python manage.py runserver 0.0.0.0:8000
-                """
+                bat 'docker-compose -f docker-compose.yml up -d --force-recreate'
             }
         }
     }
+
+
 }
