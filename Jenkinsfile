@@ -39,7 +39,22 @@ pipeline {
                 junit '**/tests/results/*.xml'
             }
         }
+        // optional 2
+        post {
+            failure {
+                mail to: 'imranlatur24studymaterial@gmail.com',
+                    subject: "Jenkins Build Failed",
+                    body: "Check Jenkins for details."
+            }
+        }
+        // optional 3
+        post {
+            success {
+                mail to: 'imranlatur24studymaterial@gmail.com',
+                    subject: "Jenkins Build Success: ",
+                    body: "Good news! The build succeeded.\nCheck details here "
+            }
+        }
     }
-
 
 }
