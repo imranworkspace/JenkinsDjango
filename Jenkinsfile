@@ -2,8 +2,11 @@ pipeline {
     agent any
 
     environment {
+        CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+        CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
         VENV = "myenv"
         PYTHON = "C:\\Users\\imran\\AppData\\Local\\Programs\\Python\\Python38\\python.exe"   // <-- adjust if Python path is different
+        DOCKER_IMAGE = "imrandocker24/jenkins_django:latest"
     }
 
     stages {
@@ -33,28 +36,30 @@ pipeline {
                 bat "%VENV%\\Scripts\\python manage.py test myapp.tests.test_views"
             }
         }
-        // optional 
-        post {
-            always {
-                junit '**/tests/results/*.xml'
-            }
-        }
-        // optional 2
-        post {
-            failure {
-                mail to: 'imranlatur24studymaterial@gmail.com',
-                    subject: "Jenkins Build Failed",
-                    body: "Check Jenkins for details."
-            }
-        }
-        // optional 3
-        post {
-            success {
-                mail to: 'imranlatur24studymaterial@gmail.com',
-                    subject: "Jenkins Build Success: ",
-                    body: "Good news! The build succeeded.\nCheck details here "
-            }
-        }
-    }
 
+        stage('Build Docker Image') {
+            steps {
+                bat "docker build -t %DOCKER_IMAGE% ."
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat """
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %DOCKER_IMAGE%
+                    """
+                }
+            }
+        }
+
+        stage('Run Container') {
+            steps {
+                bat 'docker-compose -f docker-compose.yml up -d --force-recreate'
+            }
+        }
+
+        
+    }
 }
