@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   # ----------------- Django -----------------
   django:
@@ -5,12 +7,21 @@ services:
     container_name: jenkins_django
     command: >
       sh -c "python manage.py migrate --noinput &&
-             python manage.py runserver 0.0.0.0:8009"
+             gunicorn JenkinsDjango.wsgi:application --bind 0.0.0.0:8009"
     ports:
       - "8009:8009"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     volumes:
       - .:/app
-    image: imrandocker24/jenkins_django:latest
+    depends_on:
+      - redis
+
+  # ----------------- Redis -----------------
+  redis:
+    image: redis:alpine
+    container_name: redis
 
   # ----------------- Nginx -----------------
   nginx:
@@ -20,11 +31,7 @@ services:
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
       - ./app/static:/app/static
       - ./app/media:/app/media
-      
     ports:
       - "80:80"
     depends_on:
       - django
-
-volumes:
-  postgres_data:
