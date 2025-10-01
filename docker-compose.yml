@@ -10,6 +10,7 @@ services:
       - "8009:8009"
     volumes:
       - .:/app
+    image: imrandocker24/jenkins_django:latest
 
   # ----------------- Nginx -----------------
   nginx:
